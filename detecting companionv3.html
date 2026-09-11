@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Field Companion — XP Deus 2</title>
+<style>
+:root{
+  --ground:#171310;
+  --panel:#211B14;
+  --panel-2:#2A2318;
+  --brass:#C08A42;
+  --brass-deep:#8C5F27;
+  --brass-bright:#E0AD68;
+  --verdigris:#7A9683;
+  --rust:#A5543D;
+  --bone:#EDE3CE;
+  --bone-dim:#9C9078;
+  --hairline:#38301F;
+  --hairline-soft:rgba(237,227,206,0.06);
+  --font-head: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--ground);color:var(--bone);font-family:var(--font-body);}
+body{
+  padding-bottom:70px;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(192,138,66,0.05), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(122,150,131,0.04), transparent 55%);
+  background-attachment:fixed;
+}
+h1,h2,h3{font-family:var(--font-head); font-weight:600; color:var(--brass-bright); margin:0 0 8px; letter-spacing:0.1px;}
+h1{font-size:21px; font-weight:700;}
+h2{font-size:17px; margin-top:2px;}
+h3{font-size:14.5px; color:var(--bone); margin-bottom:6px;}
+p{line-height:1.55; color:var(--bone-dim); font-size:14px;}
+.panel{display:none; padding:14px 16px 34px;}
+.panel.active{display:block; animation:rise 0.22s ease-out;}
+@keyframes rise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+.card{
+  background:linear-gradient(var(--panel), var(--panel));
+  background-color:var(--panel);
+  border:1px solid var(--hairline);
+  border-radius:5px;
+  padding:15px 16px;
+  margin-bottom:12px;
+  box-shadow: inset 0 1px 0 var(--hairline-soft);
+  position:relative;
+}
+.card::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:linear-gradient(var(--brass-deep), transparent 85%);
+  border-radius:5px 0 0 5px;
+  opacity:0.55;
+}
+.row{display:flex; gap:8px; flex-wrap:wrap;}
+.row > *{flex:1;}
+button{
+  background:var(--panel-2); color:var(--bone); border:1px solid var(--hairline);
+  border-radius:4px; padding:10px 12px; font-size:13.5px; font-family:var(--font-body); font-weight:600;
+  letter-spacing:0.1px; transition:transform 0.08s ease, background 0.15s ease;
+}
+button.primary{
+  background:linear-gradient(180deg, var(--brass-bright), var(--brass) 65%, var(--brass-deep));
+  color:#211405; border-color:var(--brass-deep); font-weight:700;
+}
+button.danger{border-color:var(--rust); color:var(--rust); background:transparent;}
+button:active{transform:scale(0.97); opacity:0.9;}
+input, textarea, select{
+  background:#151009; border:1px solid var(--hairline); color:var(--bone); border-radius:4px;
+  padding:9px 10px; font-size:14px; font-family:var(--font-body); width:100%; margin-bottom:8px;
+}
+input:focus, textarea:focus, select:focus{outline:none; border-color:var(--brass);}
+label{font-size:11.5px; color:var(--bone-dim); display:block; margin-bottom:3px; letter-spacing:0.15px;}
+.readout{font-family:var(--font-mono); color:var(--brass-bright); font-size:13.5px; letter-spacing:0.2px;}
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th,td{text-align:left; padding:8px 6px; border-bottom:1px solid var(--hairline); vertical-align:top;}
+th{
+  color:var(--bone-dim); font-weight:600; font-size:11.5px; letter-spacing:0.2px;
+  position:sticky; top:0; background:var(--panel); border-bottom:1px solid var(--brass-deep);
+}
+tbody tr:nth-child(even){background:rgba(237,227,206,0.02);}
+.tier-ferrous{color:var(--rust);}
+.tier-low{color:#9C8A5A;}
+.tier-med{color:var(--verdigris);}
+.tier-high{color:var(--brass-bright);}
+.pill{display:inline-block; padding:2px 9px; border-radius:999px; font-size:10.5px; border:1px solid currentColor; letter-spacing:0.2px;}
+.finditem{border-bottom:1px solid var(--hairline); padding:11px 0;}
+.finditem:last-child{border-bottom:none;}
+.small{font-size:12px; color:var(--bone-dim);}
+.header{
+  padding:20px 18px 14px; border-bottom:1px solid var(--hairline);
+  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(180deg, rgba(192,138,66,0.05), transparent);
+}
+.emblem{flex:none; width:34px; height:34px; color:var(--brass); opacity:0.9;}
+.header-text h1{font-variant:small-caps; font-size:23px; letter-spacing:0.5px;}
+.header-text p{margin:0; font-size:12.5px;}
+.tabbar{
+  position:fixed; bottom:0; left:0; right:0; display:flex;
+  background:linear-gradient(180deg, var(--panel), #1B160F);
+  border-top:1px solid var(--hairline); z-index:10;
+  box-shadow: 0 -6px 16px rgba(0,0,0,0.25);
+}
+.tabbar button{
+  flex:1; background:none; border:none; border-radius:0; color:var(--bone-dim);
+  font-size:10px; padding:9px 2px 10px; font-weight:600; letter-spacing:0.1px;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.tabbar button.active{color:var(--brass-bright);}
+.tabbar button.active svg{stroke:var(--brass-bright);}
+.tabicon{width:19px; height:19px; stroke:var(--bone-dim); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;}
+canvas{width:100%; background:#12100B; border-radius:5px; border:1px solid var(--hairline); touch-action:none;}
+hr{border:none; border-top:1px solid var(--hairline); margin:14px 0;}
+.searchbox{position:sticky; top:0; z-index:2;}
+.legend{display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--bone-dim); margin-top:6px;}
+.dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle;}
+
+/* ---- map fullscreen mode ---- */
+#mapViewWrap{position:relative;}
+#mapViewWrap.fs{
+  position:fixed; inset:0; z-index:500; background:var(--ground);
+  padding:10px 10px calc(env(safe-area-inset-bottom, 0px) + 10px);
+  display:flex; flex-direction:column;
+}
+#mapViewWrap.fs #mapToolbarFs{display:flex;}
+#mapViewWrap.fs #mapCanvas,
+#mapViewWrap.fs #leafletMap{flex:1; height:auto; min-height:0;}
+#mapViewWrap.fs .legend{flex:none;}
+#mapToolbarFs{
+  display:none; align-items:center; justify-content:space-between; gap:8px;
+  margin-bottom:8px; flex-wrap:wrap;
+}
+#mapToolbarFs button{padding:8px 12px; font-size:12.5px;}
+.btn-fs-exit{background:var(--panel-2); color:var(--bone); border:1px solid var(--hairline);}
+
+/* ---- live "you are here" GPS marker (leaflet divIcon) ---- */
+.gps-pulse-wrap{position:relative; width:20px; height:20px;}
+.gps-pulse-dot{
+  position:absolute; left:5px; top:5px; width:10px; height:10px; border-radius:50%;
+  background:#4C8BF5; border:2px solid #eaf1ff; box-shadow:0 0 4px rgba(0,0,0,0.5);
+}
+.gps-pulse-ring{
+  position:absolute; left:0; top:0; width:20px; height:20px; border-radius:50%;
+  background:rgba(76,139,245,0.35); animation:gpsPulse 1.8s ease-out infinite;
+}
+@keyframes gpsPulse{
+  0%{ transform:scale(0.3); opacity:0.9; }
+  100%{ transform:scale(1.9); opacity:0; }
+}
+a{color:var(--verdigris);}
+.note{font-size:12px; color:var(--bone-dim); border-left:2px solid var(--brass); padding-left:10px; margin:10px 0;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <svg class="emblem" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="16" r="11" stroke="currentColor" stroke-width="1.4"/>
+    <circle cx="20" cy="16" r="4.2" stroke="currentColor" stroke-width="1.2"/>
+    <path d="M20 3.5V6M20 26V28.5M7.5 16H5M35 16H32.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M14 32L20 37L26 32" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="header-text">
+    <h1>Field Companion</h1>
+    <p>XP Deus 2 · finds, coverage &amp; reference</p>
+  </div>
+</div>
+
+<!-- FIELD MAP -->
+<div class="panel active" id="tab-map">
+  <div class="card">
+    <h2>Field map</h2>
+    <p>Tracks where you've walked and, optionally, colours in signal strength where you've logged a reading. Works fully offline — no map tiles, just your own GPS trail plotted to scale.</p>
+    <div class="row">
+      <button class="primary" id="btnTrackToggle">Start walking</button>
+      <button id="btnLogPoint">Log reading here</button>
+    </div>
+    <div class="row">
+      <button class="danger" id="btnClearTrack">Clear track</button>
+      <button id="btnExportTrack">Export CSV</button>
+    </div>
+    <p class="readout" id="trackStatus" style="margin-top:8px;">Not tracking · 0 points</p>
+    <p class="readout small" id="trackDistanceReadout" style="margin-top:2px;"></p>
+    <div class="row">
+      <button id="btnMapMode">Switch to live map</button>
+      <button id="btnFullscreen">Full screen</button>
+    </div>
+    <div class="row" style="align-items:center;">
+      <label style="margin:0; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="chkLidar" style="width:auto; margin:0;"> LIDAR hillshade overlay</label>
+    </div>
+    <div class="row" style="align-items:center;">
+      <label style="margin:0; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="chkHeatmap" style="width:auto; margin:0;"> Finds heatmap</label>
+    </div>
+
+    <div id="mapViewWrap">
+      <div id="mapToolbarFs">
+        <button class="btn-fs-exit" id="btnFullscreenExit">✕ Exit full screen</button>
+        <button class="primary" id="btnTrackToggleFs">Start walking</button>
+        <button id="btnMapModeFs">Live map</button>
+      </div>
+      <canvas id="mapCanvas" height="260"></canvas>
+      <div id="leafletMap" style="display:none; height:260px; border-radius:5px; overflow:hidden; border:1px solid var(--hairline);"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#556677"></span>walked path</span>
+        <span><span class="dot" style="background:#4C8BF5"></span>low signal</span>
+        <span><span class="dot" style="background:#6E8F72"></span>mid</span>
+        <span><span class="dot" style="background:#D9A35E"></span>high</span>
+        <span><span class="dot" style="background:#C0392B"></span>very high / dig it</span>
+        <span><span class="dot" style="background:#4C8BF5; box-shadow:0 0 0 2px #eaf1ff33;"></span>you are here (live)</span>
+      </div>
+    </div>
+
+    <p class="small" style="margin-top:6px;">"Live map" shows real streets/terrain under your position, and the LIDAR overlay shades in subtle relief — hollows, banks, old field boundaries — from the Environment Agency's national survey. Both need a data or wifi signal to load; the offline sketch is always available with no signal at all. Full screen expands the map to fill your whole screen for easier reading in the field — tap "Exit full screen" or your device's back gesture to return.</p>
+  </div>
+  <div class="card">
+    <label for="lastSignal">Signal / VDI to attach to next logged point (optional)</label>
+    <input type="number" id="lastSignal" placeholder="e.g. 82">
+    <p class="small">Tip: log a point every time you get a solid signal, whether you dig it or not — over a session this builds a real map of where the good ground is, not just where your finds were.</p>
+  </div>
+</div>
+
+
+<!-- FIND LOG -->
+<div class="panel" id="tab-finds">
+  <div class="card">
+    <h2>Find log</h2>
+    <input type="text" id="findName" placeholder="What was it? (e.g. Victorian penny)">
+    <div class="row">
+      <input type="number" id="findVDI" placeholder="VDI / target ID">
+      <input type="number" id="findDepth" placeholder="Depth (cm)">
+    </div>
+    <div class="row">
+      <input type="number" id="findWeight" placeholder="Weight (g, optional)" step="0.1">
+    </div>
+    <textarea id="findNotes" placeholder="Notes — condition, exact spot, program used…" rows="2"></textarea>
+    <div class="row" style="align-items:center;">
+      <label class="btn" for="findPhotoInput" style="text-align:center; margin:0; cursor:pointer;">📷 Add photo</label>
+      <input type="file" id="findPhotoInput" accept="image/*" capture="environment" style="display:none;">
+    </div>
+    <div id="findPhotoPreviewWrap" style="display:none; margin-top:8px;">
+      <img id="findPhotoPreview" style="max-width:100px; max-height:100px; border-radius:5px; border:1px solid var(--hairline);">
+      <button id="btnRemovePhoto" style="margin-left:8px;">Remove photo</button>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button id="btnFindLoc">Use current location</button>
+      <button class="primary" id="btnSaveFind">Save find</button>
+    </div>
+    <p class="readout small" id="findLocStatus">No location attached</p>
+  </div>
+  <div class="card">
+    <div class="row" style="align-items:center;">
+      <h2 style="margin:0;">History</h2>
+      <button id="btnExportFinds" style="flex:none;">Export CSV</button>
+    </div>
+    <div id="findList"><p class="small">No finds logged yet.</p></div>
+  </div>
+</div>
+
+<!-- VDI HELPER -->
+<div class="panel" id="tab-vdi">
+  <div class="card">
+    <h2>Reading the numbers</h2>
+    <p>General target-ID behaviour on a 0–99 style scale. Every machine (and every field) shifts these a little, so treat this as a starting orientation, not gospel — the numbers that matter are the ones you personally dig and confirm on your own ground.</p>
+    <table>
+      <tr><th>Range</th><th>Usually</th><th>Notes</th></tr>
+      <tr><td class="tier-ferrous">0–12</td><td>Iron, nails, steel</td><td>Ferrous — often a grunt/low tone rather than a clean bell</td></tr>
+      <tr><td class="tier-low">13–29</td><td>Foil, small gold (rings), some pull tabs</td><td>Worth checking — small gold rings hide here</td></tr>
+      <tr><td class="tier-low">30–39</td><td>Nickel, some pull tabs</td><td>Coin-sized nickel (e.g. 5p/10p-ish) can sit near here</td></tr>
+      <tr><td class="tier-med">40–59</td><td>Pull tabs, aluminium, zinc cent-type</td><td>Classic "junk" band, but screw caps/some jewellery overlaps</td></tr>
+      <tr><td class="tier-med">60–75</td><td>Copper-alloy coins, brass</td><td>Old pennies, bronze relics typically land here</td></tr>
+      <tr><td class="tier-high">76–89</td><td>Clad/cupro-nickel coins</td><td>Modern 10p/50p-style coins</td></tr>
+      <tr><td class="tier-high">90–99</td><td>Silver</td><td>High-conductivity — hammered and pre-1947 silver often peg here</td></tr>
+    </table>
+    <div class="note">Bottle caps and folded foil are the great impersonators — they can land right in the coin bands but usually give a broken, unstable tone across a few sweeps rather than the clean repeatable signal a coin gives lying flat.</div>
+  </div>
+  <div class="card">
+    <h2>Log a calibration point</h2>
+    <p class="small">Dug something? Log the ID and what it turned out to be — over time this becomes your own site-specific chart, which is worth more than any generic table.</p>
+    <div class="row">
+      <input type="number" id="vdiValue" placeholder="VDI value">
+      <input type="text" id="vdiItem" placeholder="Turned out to be…">
+    </div>
+    <button class="primary" id="btnSaveVDI">Add to my chart</button>
+    <canvas id="vdiCanvas" height="140" style="margin-top:10px;"></canvas>
+    <div id="vdiList" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- DEUS 2 INFO -->
+<div class="panel" id="tab-deus">
+  <div class="card">
+    <h2>Settings, plainly</h2>
+    <table>
+      <tr><th>Setting</th><th>What it does</th><th>When to move it</th></tr>
+      <tr><td>Sensitivity</td><td>How hard the coil listens</td><td>Turn down if you get random chatter with nothing there (mineralised ground, EMI); turn up on quiet, clean ground for extra depth</td></tr>
+      <tr><td>Reactivity</td><td>How fast the machine reprocesses signals as you sweep</td><td>Higher in trashy ground to separate targets lying close together; lower for maximum depth on isolated, clean sites</td></tr>
+      <tr><td>Discrimination</td><td>Rejects a band of low, iron-like readings</td><td>Keep low/near zero on old or hammered-coin sites — you lose faint deep silver if you push it too high just to silence iron</td></tr>
+      <tr><td>Tones / tone breaks</td><td>Where the audio pitch changes across the ID scale</td><td>3–4 tones is plenty to learn a site by ear; full tones gives more detail but more noise</td></tr>
+      <tr><td>Ground balance / tracking</td><td>Cancels the response of mineral in the soil itself</td><td>Re-balance whenever you move to noticeably different ground (e.g. field to beach, clay to chalk)</td></tr>
+      <tr><td>Silencer</td><td>Smooths out rusty/broken chatter</td><td>Nudge up if iron is "spitting" through as broken high tones, but it can shave a little depth</td></tr>
+      <tr><td>Iron volume</td><td>How loud rejected iron sounds</td><td>Turn down when you're sick of nails on a known trashy field; keep some volume on new ground — iron grunts can mask a good target underneath</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Stock programs, explained</h3>
+    <p class="small">Exact names/order shift a little between firmware versions — check your remote's program list against these, but the intent behind each stays the same.</p>
+
+    <h3 style="margin-top:14px;">General</h3>
+    <p>The factory default and the right starting point on any ground you don't know yet. It runs a balanced multi-frequency mix so it isn't specialised for depth, small gold, or iron-heavy land — it's the one to load first on a new permission, get a feel for the ground and the junk level, and only move off once you know what you're actually dealing with.</p>
+
+    <h3>Sensitive</h3>
+    <p>Pushes toward the higher end of the frequency range, which favours small and low-conductivity targets — thin gold rings, small hammered coins, tiny relics. Costs you a little stability in mineralised or electrically noisy ground in exchange for that small-target sensitivity, so it shines on quiet permission land more than on a busy iron-strewn site.</p>
+
+    <h3>Sensitive FT</h3>
+    <p>Same frequency bias as Sensitive, but running Full Tones audio — every conductivity band gets its own distinct pitch rather than being grouped into 3–5 tones. Gives you much more audio detail to learn from, at the cost of a noisier, busier listening experience; better suited to someone who already knows the ground and wants maximum information from every signal.</p>
+
+    <h3>Deep / Deep HC</h3>
+    <p>Biased toward lower frequencies and lower reactivity, which is what buys depth on larger, mid-to-high conductivity targets (bigger coins, cupro-nickel, larger relics). HC (high conductivity) leans even further that way. Trade-off is reduced sensitivity to small, low-conductivity targets — a good choice once you suspect a field has been hunted hard at normal depth and you want to see what's sitting deeper.</p>
+
+    <h3>Relic</h3>
+    <p>Built around frequency subtraction — comparing responses across frequencies to strip out the ground and iron signal, leaving larger, older, often lower-conductivity targets more visible underneath. Reactivity is usually kept low here, which favours depth over fast target separation, so it's suited to sparser, older sites rather than trashy modern land where lots of targets sit close together.</p>
+
+    <h3>Beach / Beach Sens</h3>
+    <p>Tuned to reject the fast, salt-driven false signals that wet sand produces, which a land program will struggle with. Beach Sens adds extra sensitivity to small non-ferrous targets (jewellery, small coins) on top of that salt rejection — the pair to use any time you're within reach of the tideline, wet sand, or salt-damp ground.</p>
+
+    <h3>Gold Field</h3>
+    <p>Prospecting-oriented: sensitivity is weighted toward the low-conductivity end of the scale where small gold nuggets sit, since nuggets often read close to iron or ground signal and get thrown away by normal discrimination. Expect more chatter in mineralised ground in exchange for not missing genuinely small, low-conductivity gold.</p>
+
+    <h3>Diving</h3>
+    <p>Configured for stability underwater and in saltwater specifically — resistant to the false signals salt water causes, and biased toward rings and coins over foil, which is the dominant junk category underwater. Not a land program; only relevant if you're detecting submerged.</p>
+
+    <h3>Deus Mono</h3>
+    <p>Runs a single frequency (rather than the usual multi-frequency blend) with an extended range and stronger EMI rejection. Worth switching to when multi-frequency operation itself becomes the problem — heavy electrical interference, or ground so mineralised that multi-frequency processing gets unstable — since a single clean frequency can outperform multi-frequency in exactly those conditions.</p>
+  </div>
+  <div class="card">
+    <h3>Legacy 4.2</h3>
+    <p>A free, community-built custom program (not a stock XP program) built around frequency management to pull old, low-conductivity targets — Saxon, medieval and Roman coins in particular — cleanly out of iron-heavy ground. Detectorists mainly reach for it on old pasture, deserted medieval village sites, and other historically "dirty" land where a stock program either buries the target in iron noise or discriminates it away entirely.</p>
+    <p>Because it's a downloadable program rather than a menu option, install it through the official NoxEditor program installer (or by entering the program code on your remote, if you were given one) rather than trying to rebuild it from memory — exact tone-break and reactivity values get refined between releases, so the authoritative version is whatever the current install file gives you.</p>
+  </div>
+  <div class="card">
+    <h3>Forager 4</h3>
+    <p>Another free community program, built around "morphing" — it blends frequency behaviour as you sweep rather than sitting on one fixed profile. That makes it a forgiving general-purpose choice across mixed or changing ground (a field that goes from dry topsoil to a damp hollow, for instance), which is why people tend to reach for it as a do-it-all option on a new permission before settling into something more specialised.</p>
+    <p>Same advice as Legacy: install via the official program file/code rather than hand-entering settings, so you get whatever the current tuned release actually is.</p>
+  </div>
+  <div class="note">Both are free downloads distributed through XP's dealer network and community channels (search "XP Deus 2 Legacy 4.2" / "Forager 4" for the current install code and video walkthrough) — worth re-checking before a big trip in case a newer revision has replaced the one you have.</div>
+</div>
+
+<!-- UK COINS -->
+<div class="panel" id="tab-coins">
+  <div class="card searchbox">
+    <input type="text" id="coinSearch" placeholder="Search coins (e.g. sixpence, silver, 1967)">
+  </div>
+  <div class="card">
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <linearGradient id="gradSilver" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#e8e6e1"/><stop offset="55%" stop-color="#b9bdc2"/><stop offset="100%" stop-color="#8b9098"/>
+        </linearGradient>
+        <linearGradient id="gradBronze" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#d99a5f"/><stop offset="55%" stop-color="#a5643a"/><stop offset="100%" stop-color="#7a4526"/>
+        </linearGradient>
+        <linearGradient id="gradCN" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#dcdedd"/><stop offset="55%" stop-color="#aeb2b3"/><stop offset="100%" stop-color="#83878a"/>
+        </linearGradient>
+        <linearGradient id="gradBrass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#e6c179"/><stop offset="55%" stop-color="#c08a42"/><stop offset="100%" stop-color="#8c5f27"/>
+        </linearGradient>
+        <linearGradient id="gradFerrous" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#c98a5a"/><stop offset="55%" stop-color="#96603a"/><stop offset="100%" stop-color="#5f4028"/>
+        </linearGradient>
+        <linearGradient id="gradPatina" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#a9c2ab"/><stop offset="55%" stop-color="#7a9683"/><stop offset="100%" stop-color="#516b57"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <table id="coinTable">
+      <thead><tr><th>Coin</th><th>Period</th><th>Composition</th><th>Size</th><th>Conductivity</th></tr></thead>
+      <tbody id="coinBody"></tbody>
+    </table>
+  </div>
+  <div class="note">Conductivity tiers are rough guidance (ferrous / low / medium / high), not fixed VDI numbers — always confirm against your own machine. The one to remember: copper-plated steel 1p/2p (1992 onward) are magnetic and can read like ferrous rubbish despite looking exactly like the older bronze coins.</div>
+
+  <div class="card">
+    <h2>How this app stores your data</h2>
+    <p>No cookies, and nothing is sent anywhere. Your track, finds, and VDI log are saved with a browser feature called <strong>localStorage</strong> — a small local database the page keeps entirely on your phone, tied to this file/address. There's no server behind this app at all; everything happens in the browser tab itself.</p>
+    <p>Practical points worth knowing:</p>
+    <ul class="small" style="padding-left:18px; line-height:1.6;">
+      <li>It persists between visits — closing the tab or restarting your phone won't lose it.</li>
+      <li>It's tied to <em>this exact file or web address</em>. If you move the file, re-host it at a new URL, or open it in a different browser, that counts as a different "origin" and starts with an empty store.</li>
+      <li>"Clear browsing data" in your browser settings will wipe it, and on some phones (iOS Safari in particular) storage for infrequently-opened sites can be cleared automatically after a long period of inactivity.</li>
+      <li>Because of that, use the backup tool below — it saves everything to an actual JSON file on your phone, independent of browser storage entirely.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Backup &amp; restore (local JSON file)</h2>
+    <p>This saves your entire track, finds log, and VDI log into one <code>.json</code> file on your phone — not tied to a browser, an origin, or this specific copy of the app. It's the safest way to carry your data between devices, hosting changes, or a fresh install.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <button class="btn" id="backupExportBtn">Export backup (.json)</button>
+      <button class="btn" id="backupImportBtn">Restore from backup</button>
+      <input type="file" id="backupFileInput" accept="application/json,.json" style="display:none;">
+    </div>
+    <p class="small" style="margin-top:8px;">Exporting downloads a file to your <strong>Files/Downloads</strong> folder — move it into iCloud Drive or another folder you trust for safekeeping. Restoring reads a previously exported file and replaces the app's current track/finds/VDI data with what's in it, so only restore a backup you mean to load in full.</p>
+    <p class="small" id="backupStatus"></p>
+  </div>
+</div>
+
+<!-- OTHER FINDS ID GUIDE -->
+<div class="panel" id="tab-other">
+  <div class="card searchbox">
+    <input type="text" id="otherSearch" placeholder="Search (e.g. button, musket ball, Roman)">
+  </div>
+  <div class="card">
+    <table id="otherTable">
+      <thead><tr><th>Item</th><th>Period</th><th>Material</th><th>Signal</th><th>ID tips</th></tr></thead>
+      <tbody id="otherBody"></tbody>
+    </table>
+  </div>
+  <div class="note">Lead and pewter (musket balls, toy figures, some buttons) are poor conductors and often read surprisingly low — close to iron on some machines. If you're hunting an old site with the discrimination turned up to silence junk, you may be silencing a whole category of genuine finds along with it.</div>
+
+  <div class="card">
+    <h2>Reporting what you find (England, Wales &amp; NI)</h2>
+    <p>Under the Treasure Act 1996, an object counts as Treasure if it's <strong>at least 300 years old</strong> and either: it's not a coin and contains at least 10% gold or silver by weight; or it's part of a group of two or more coins of that age containing that much precious metal (or ten or more coins of any precious-metal content); or it's a group of two or more prehistoric base-metal objects found together. Anything found alongside a Treasure item counts as Treasure too, regardless of what it's made of.</p>
+    <p>If you think you've found Treasure, you're legally required to report it to your local coroner — in practice, this means contacting your local Finds Liaison Officer (part of the Portable Antiquities Scheme), who handles the process for you. You have 14 days from realising it might qualify to report it.</p>
+    <p>Scotland works differently — there's no 10%/300-year test; anything of possible archaeological or historical significance should be reported to the Treasure Trove Unit.</p>
+    <p>Even when something isn't legally Treasure, recording it with your local Finds Liaison Officer (England &amp; Wales) is voluntary but is how individual finds end up contributing to the wider archaeological record — worth doing for anything old or unusual. And always agree permission and a finds-sharing arrangement with the landowner before you start.</p>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div class="panel" id="tab-tools">
+
+  <div class="card" id="backupReminderCard" style="display:none; border-color:var(--rust);">
+    <h2 style="color:var(--rust);">Backup reminder</h2>
+    <p id="backupReminderText" class="small"></p>
+    <p class="small">Go to the Coins tab to export a fresh JSON backup.</p>
+  </div>
+
+  <div class="card">
+    <h2>Career stats</h2>
+    <div id="statsBody" class="small"></div>
+  </div>
+
+  <div class="card">
+    <h2>Unit converter</h2>
+    <div class="row" style="align-items:center;">
+      <input type="number" id="convMm" placeholder="mm">
+      <span class="small" style="flex:none;">↔</span>
+      <input type="number" id="convIn" placeholder="inches">
+    </div>
+    <div class="row" style="align-items:center; margin-top:8px;">
+      <input type="number" id="convG" placeholder="grams">
+      <span class="small" style="flex:none;">↔</span>
+      <input type="number" id="convOz" placeholder="oz (avdp)">
+    </div>
+    <div class="row" style="align-items:center; margin-top:8px;">
+      <input type="number" id="convGTroy" placeholder="grams">
+      <span class="small" style="flex:none;">↔</span>
+      <input type="number" id="convTroy" placeholder="troy oz">
+    </div>
+    <p class="small" style="margin-top:6px;">Type in any field — the matching unit fills in automatically. Troy ounces are the standard unit for pricing silver/gold.</p>
+  </div>
+
+  <div class="card">
+    <h2>Silver value estimator</h2>
+    <label for="silverSpot">Current silver spot price (£ per troy oz)</label>
+    <input type="number" id="silverSpot" placeholder="e.g. 24.50" step="0.01">
+    <div class="row" style="margin-top:8px;">
+      <input type="number" id="silverWeight" placeholder="Weighed piece (g)">
+      <select id="silverPurity">
+        <option value="1.0">Fine silver .999</option>
+        <option value="0.958">Britannia .958</option>
+        <option value="0.925" selected>Sterling .925</option>
+        <option value="0.900">Coin silver .900</option>
+        <option value="0.500">British 1920–46 .500</option>
+      </select>
+    </div>
+    <p class="readout" id="silverResult" style="margin-top:8px;">Enter a spot price and weight.</p>
+    <p class="small" style="margin-top:6px;">Weigh the actual piece on your own scale rather than assuming a catalogue weight — wear, corrosion, and clipping (common on hammered coins) all change the real silver content. This is scrap-value guidance only, not a valuation of numismatic or archaeological worth, which can be far higher.</p>
+  </div>
+
+  <div class="card">
+    <h2>Search pattern timer</h2>
+    <p class="small">A periodic buzz/vibration to help keep your sweep coverage even, so you're less likely to drift and leave gaps.</p>
+    <div class="row" style="align-items:center;">
+      <label style="margin:0;">Interval (seconds)</label>
+      <input type="number" id="timerInterval" value="30" min="5" style="max-width:90px;">
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button class="primary" id="btnTimerToggle">Start timer</button>
+    </div>
+    <p class="readout" id="timerStatus" style="margin-top:8px;">Not running</p>
+  </div>
+
+  <div class="card">
+    <h2>Session log</h2>
+    <div class="row">
+      <input type="date" id="sessionDate">
+      <input type="number" id="sessionHours" placeholder="Hours out" step="0.25">
+    </div>
+    <input type="text" id="sessionWeather" placeholder="Weather (e.g. overcast, light rain)">
+    <input type="text" id="sessionGround" placeholder="Ground conditions (e.g. dry, recently ploughed)">
+    <textarea id="sessionNotes" placeholder="Notes — what worked, what didn't…" rows="2"></textarea>
+    <div class="row">
+      <button class="primary" id="btnSaveSession">Save session</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="align-items:center;">
+      <h2 style="margin:0;">Session history</h2>
+      <button id="btnExportSessions" style="flex:none;">Export CSV</button>
+    </div>
+    <div id="sessionList"><p class="small">No sessions logged yet.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Permissions &amp; landowner tracker</h2>
+    <input type="text" id="permField" placeholder="Field / site name">
+    <input type="text" id="permOwner" placeholder="Landowner name">
+    <input type="text" id="permContact" placeholder="Contact (phone/email)">
+    <input type="text" id="permStatus" placeholder="Status (e.g. verbal OK, signed agreement)">
+    <textarea id="permNotes" placeholder="Notes — access rules, share of finds, renewal date…" rows="2"></textarea>
+    <div class="row">
+      <button class="primary" id="btnSavePerm">Save permission</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="margin:0 0 8px;">Permissions on file</h2>
+    <div id="permList"><p class="small">No permissions logged yet.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>PAS-style export</h2>
+    <p class="small">Formats your finds log into the fields the Portable Antiquities Scheme's online recording form asks for, including an approximate British National Grid reference calculated from each find's GPS location — ready to copy in when you report a find. Material and broad period are left for you to fill in, since those need expert eyes.</p>
+    <div class="row">
+      <button id="btnExportPAS">Export PAS-style CSV</button>
+    </div>
+    <p class="small" style="margin-top:6px;">The grid reference is calculated on your phone using the standard published conversion formula, accurate to within a few metres — good enough to locate a findspot, but not survey-grade.</p>
+  </div>
+
+  <div class="card">
+    <h2>Reporting contacts</h2>
+    <p class="small">Individual Finds Liaison Officers change roles over time, so these are the stable, central offices rather than named staff — they'll always route you correctly.</p>
+    <p><strong>England &amp; Wales — general PAS enquiries</strong><br>info@finds.org.uk · 020 7323 8611<br><span class="small">Visit finds.org.uk to look up your regional Finds Liaison Officer by county.</span></p>
+    <p><strong>England &amp; Wales — Treasure enquiries</strong><br>treasure@britishmuseum.org · 020 7323 8243 / 8546</p>
+    <p><strong>Scotland — Treasure Trove Unit</strong><br>TreasureTrove@nms.ac.uk · treasuretrovescotland.co.uk<br><span class="small">No 300-year/10% test — report anything of possible archaeological significance.</span></p>
+    <p><strong>Northern Ireland — National Museums NI</strong><br>treasure@nationalmuseumsni.org<br><span class="small">Note: any digging/searching for archaeological objects in NI requires a licence from the Historic Environment Division — a stricter regime than GB.</span></p>
+  </div>
+
+</div>
+
+<div class="tabbar">
+
+  <button class="active" data-tab="tab-map">
+    <svg class="tabicon" viewBox="0 0 24 24"><path d="M3 7l6-2.5 6 2.5 6-2.5V17l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4.5V17M15 7v12.5"/></svg>
+    Map
+  </button>
+  <button data-tab="tab-finds">
+    <svg class="tabicon" viewBox="0 0 24 24"><path d="M4 20l5-1 9-9-4-4-9 9z"/><path d="M13 6l4 4"/><circle cx="18" cy="6" r="2"/></svg>
+    Finds
+  </button>
+  <button data-tab="tab-vdi">
+    <svg class="tabicon" viewBox="0 0 24 24"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.2" fill="currentColor" stroke="none"/></svg>
+    VDI
+  </button>
+  <button data-tab="tab-deus">
+    <svg class="tabicon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6"/></svg>
+    Deus 2
+  </button>
+  <button data-tab="tab-coins">
+    <svg class="tabicon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M9.5 9.7c0-1 1-1.7 2.5-1.7s2.5.9 2.5 2-1 1.6-2.5 1.8-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.7 2.5-1.7"/></svg>
+    Coins
+  </button>
+  <button data-tab="tab-other">
+    <svg class="tabicon" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/></svg>
+    ID Guide
+  </button>
+  <button data-tab="tab-tools">
+    <svg class="tabicon" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-2.5 2.5-2-2z"/></svg>
+    Tools
+  </button>
+</div>
+
+<script>
+/* ---------- tab switching ---------- */
+document.querySelectorAll('.tabbar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='tab-map') refreshMapView();
+    if(btn.dataset.tab==='tab-vdi') drawVDIChart();
+  });
+});
+
+/* ---------- storage helpers ---------- */
+function load(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+/* ---------- JSON backup / restore ---------- */
+const BACKUP_KEYS = ['md_track','md_finds','md_vdilog','md_sessions','md_permissions'];
+function setupBackupUI(){
+  try{
+    const exportBtn = document.getElementById('backupExportBtn');
+    const importBtn = document.getElementById('backupImportBtn');
+    const fileInput = document.getElementById('backupFileInput');
+    const status = document.getElementById('backupStatus');
+    if(!exportBtn || !importBtn || !fileInput) return;
+
+    exportBtn.addEventListener('click', ()=>{
+      try{
+        const payload = { app:'detecting_companion', exportedAt: new Date().toISOString(), data:{} };
+        BACKUP_KEYS.forEach(k=>{ payload.data[k] = load(k, []); });
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().slice(0,10);
+        a.href = URL.createObjectURL(blob);
+        a.download = 'detecting-backup-' + stamp + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        try{ localStorage.setItem('md_lastBackupAt', new Date().toISOString()); }catch(err){}
+        if(status) status.textContent = 'Backup file downloaded.';
+      }catch(e){ if(status) status.textContent = 'Export failed: ' + e.message; }
+    });
+
+    importBtn.addEventListener('click', ()=>{ fileInput.click(); });
+
+    fileInput.addEventListener('change', (ev)=>{
+      const file = ev.target.files && ev.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const parsed = JSON.parse(reader.result);
+          const data = parsed && parsed.data ? parsed.data : parsed; // tolerate raw key/value too
+          if(!data || typeof data !== 'object') throw new Error('File does not look like a valid backup.');
+          if(!confirm('Restore this backup? This replaces your current track, finds, and VDI log.')) { fileInput.value=''; return; }
+          BACKUP_KEYS.forEach(k=>{
+            if(Object.prototype.hasOwnProperty.call(data, k)) save(k, data[k]);
+          });
+          if(status) status.textContent = 'Backup restored. Reloading…';
+          setTimeout(()=>location.reload(), 600);
+        }catch(e){
+          if(status) status.textContent = 'Restore failed: ' + e.message;
+        }
+        fileInput.value = '';
+      };
+      reader.onerror = () => { if(status) status.textContent = 'Could not read that file.'; fileInput.value=''; };
+      reader.readAsText(file);
+    });
+  }catch(e){ /* backup UI is non-critical, never block the app */ }
+}
+setupBackupUI();
+
+/* ---------- CSV export ---------- */
+function downloadCSV(filename, rows){
+  const csv = rows.map(r=>r.map(c=>'"'+String(c===undefined?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- geolocation ---------- */
+function getPos(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation){ rej('no geolocation'); return; }
+    navigator.geolocation.getCurrentPosition(p=>res(p.coords), e=>rej(e.message), {enableHighAccuracy:true, timeout:8000});
+  });
+}
+
+/* ================= FIELD MAP ================= */
+let track = load('md_track', []);
+let finds = load('md_finds', []);
+let watchId = null;
+let tracking = false;
+let mapMode = 'sketch'; // 'sketch' (offline canvas) or 'live' (real map, needs signal)
+let leafletMap = null, leafletMarker = null, leafletPath = null, leafletPoints = null;
+let lidarLayer = null;
+
+function toggleLidar(on){
+  if(!leafletMap) return;
+  if(on){
+    if(!lidarLayer){
+      lidarLayer = L.tileLayer.wms('https://environment.data.gov.uk/geoservices/datasets/09ea3b37-df3a-4e8b-ac69-fb0842227b04/wms', {
+        layers: 'Lidar_Composite_Hillshade_DTM_2m',
+        format: 'image/png',
+        transparent: true,
+        opacity: 0.65,
+        attribution: 'Contains Environment Agency LIDAR data &copy; Environment Agency'
+      });
+    }
+    lidarLayer.addTo(leafletMap);
+  } else if(lidarLayer){
+    leafletMap.removeLayer(lidarLayer);
+  }
+}
+
+function loadLeaflet(){
+  return new Promise((resolve, reject)=>{
+    if(window.L){ resolve(); return; }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = ()=>resolve();
+    script.onerror = ()=>reject(new Error('no signal'));
+    document.head.appendChild(script);
+  });
+}
+
+let heatmapLayer = null;
+function toggleFindsHeatmap(on){
+  if(!leafletMap) return;
+  if(heatmapLayer){ leafletMap.removeLayer(heatmapLayer); heatmapLayer=null; }
+  if(!on) return;
+  heatmapLayer = L.layerGroup();
+  (typeof finds!=='undefined'?finds:[]).forEach(f=>{
+    if(!f.loc) return;
+    L.circle([f.loc.lat, f.loc.lon], {radius:12, color:'transparent', fillColor:'#D9A35E', fillOpacity:0.35})
+      .addTo(heatmapLayer);
+    L.circle([f.loc.lat, f.loc.lon], {radius:4, color:'transparent', fillColor:'#C0392B', fillOpacity:0.6})
+      .addTo(heatmapLayer);
+  });
+  heatmapLayer.addTo(leafletMap);
+}
+
+function initOrUpdateLeaflet(){
+  if(!window.L) return;
+  const latlngs = track.map(p=>[p.lat, p.lon]);
+  const gpsIcon = L.divIcon({
+    className: '',
+    html: '<div class="gps-pulse-wrap"><div class="gps-pulse-ring"></div><div class="gps-pulse-dot"></div></div>',
+    iconSize: [20,20], iconAnchor: [10,10]
+  });
+  if(!leafletMap){
+    const start = latlngs.length ? latlngs[latlngs.length-1] : [51.5074, -0.1278];
+    leafletMap = L.map('leafletMap').setView(start, 17);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(leafletMap);
+    leafletPath = L.polyline([], {color:'#B9843F', weight:3}).addTo(leafletMap);
+    leafletMarker = L.marker(start, {icon: gpsIcon}).addTo(leafletMap);
+    leafletPoints = L.layerGroup().addTo(leafletMap);
+  }
+  leafletPath.setLatLngs(latlngs);
+  leafletPoints.clearLayers();
+  track.forEach(p=>{
+    if(p.signal!==null && p.signal!==undefined){
+      L.circleMarker([p.lat,p.lon], {radius:6, color:signalColor(p.signal), fillColor:signalColor(p.signal), fillOpacity:0.9, weight:1})
+        .addTo(leafletPoints);
+    }
+  });
+  if(latlngs.length){
+    const last = latlngs[latlngs.length-1];
+    leafletMarker.setLatLng(last);
+    leafletMap.panTo(last);
+  }
+  setTimeout(()=>{ if(leafletMap) leafletMap.invalidateSize(); }, 150);
+  toggleLidar(document.getElementById('chkLidar').checked);
+  toggleFindsHeatmap(document.getElementById('chkHeatmap').checked);
+}
+
+function refreshMapView(){
+  if(mapMode==='live') initOrUpdateLeaflet(); else drawMap();
+}
+
+function syncMapModeButtons(text){
+  document.getElementById('btnMapMode').textContent = text;
+  document.getElementById('btnMapModeFs').textContent = mapMode==='live' ? 'Offline sketch' : 'Live map';
+}
+
+document.getElementById('btnMapMode').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnMapMode');
+  if(mapMode==='sketch'){
+    btn.textContent = 'Loading map…';
+    try{
+      await loadLeaflet();
+      document.getElementById('mapCanvas').style.display = 'none';
+      document.getElementById('leafletMap').style.display = 'block';
+      mapMode = 'live';
+      syncMapModeButtons('Switch to offline sketch');
+      initOrUpdateLeaflet();
+    }catch(e){
+      alert('Could not load the live map — this needs a data or wifi signal. Staying on the offline sketch.');
+      syncMapModeButtons('Switch to live map');
+    }
+  } else {
+    document.getElementById('leafletMap').style.display = 'none';
+    document.getElementById('mapCanvas').style.display = 'block';
+    mapMode = 'sketch';
+    syncMapModeButtons('Switch to live map');
+    drawMap();
+  }
+});
+document.getElementById('btnMapModeFs').addEventListener('click', ()=>document.getElementById('btnMapMode').click());
+
+document.getElementById('chkLidar').addEventListener('change', e=>{
+  if(mapMode!=='live'){
+    alert('Switch to live map first — the LIDAR layer streams from a national dataset and needs a signal, same as the street map.');
+    e.target.checked = false;
+    return;
+  }
+  toggleLidar(e.target.checked);
+});
+
+document.getElementById('chkHeatmap').addEventListener('change', e=>{
+  if(mapMode==='live') toggleFindsHeatmap(e.target.checked);
+  else drawMap();
+});
+
+/* ---------- full screen map mode ---------- */
+function setFullscreen(on){
+  const wrap = document.getElementById('mapViewWrap');
+  if(on){
+    wrap.classList.add('fs');
+    document.getElementById('btnFullscreen').textContent = 'Exit full screen';
+  } else {
+    wrap.classList.remove('fs');
+    document.getElementById('btnFullscreen').textContent = 'Full screen';
+  }
+  setTimeout(()=>{
+    if(mapMode==='live' && leafletMap) leafletMap.invalidateSize();
+    else drawMap();
+  }, 200);
+}
+document.getElementById('btnFullscreen').addEventListener('click', ()=>{
+  setFullscreen(!document.getElementById('mapViewWrap').classList.contains('fs'));
+});
+document.getElementById('btnFullscreenExit').addEventListener('click', ()=>setFullscreen(false));
+document.getElementById('btnTrackToggleFs').addEventListener('click', ()=>document.getElementById('btnTrackToggle').click());
+
+
+function updateTrackStatus(){
+  document.getElementById('trackStatus').textContent =
+    (tracking?'Tracking… ':'Not tracking · ') + track.length + ' points';
+  const label = tracking ? 'Stop walking' : 'Start walking';
+  document.getElementById('btnTrackToggle').textContent = label;
+  document.getElementById('btnTrackToggleFs').textContent = label;
+  const distEl = document.getElementById('trackDistanceReadout');
+  if(distEl && typeof trackDistanceM === 'function'){
+    const km = trackDistanceM()/1000;
+    distEl.textContent = km>0 ? `${km.toFixed(2)} km walked (all-time track)` : '';
+  }
+}
+updateTrackStatus();
+
+document.getElementById('btnTrackToggle').addEventListener('click', ()=>{
+  if(!tracking){
+    if(!navigator.geolocation){ alert('Geolocation not available on this device/browser.'); return; }
+    watchId = navigator.geolocation.watchPosition(p=>{
+      track.push({lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now(), signal:null});
+      save('md_track', track);
+      updateTrackStatus();
+      refreshMapView();
+    }, e=>{ console.warn(e); }, {enableHighAccuracy:true, maximumAge:2000, timeout:10000});
+    tracking = true;
+    document.getElementById('btnTrackToggle').textContent = 'Stop walking';
+  } else {
+    navigator.geolocation.clearWatch(watchId);
+    tracking = false;
+    document.getElementById('btnTrackToggle').textContent = 'Start walking';
+  }
+  updateTrackStatus();
+});
+
+document.getElementById('btnLogPoint').addEventListener('click', async ()=>{
+  try{
+    const c = await getPos();
+    const sigInput = document.getElementById('lastSignal').value;
+    track.push({lat:c.latitude, lon:c.longitude, t:Date.now(), signal: sigInput===''?null:Number(sigInput)});
+    save('md_track', track);
+    updateTrackStatus();
+    refreshMapView();
+  }catch(e){ alert('Could not get location: '+e); }
+});
+
+document.getElementById('btnClearTrack').addEventListener('click', ()=>{
+  if(confirm('Clear the whole track?')){ track=[]; save('md_track',track); updateTrackStatus(); refreshMapView(); }
+});
+
+document.getElementById('btnExportTrack').addEventListener('click', ()=>{
+  const rows=[['timestamp','lat','lon','signal']];
+  track.forEach(p=>rows.push([new Date(p.t).toISOString(), p.lat, p.lon, p.signal ?? '']));
+  downloadCSV('track.csv', rows);
+});
+
+function signalColor(s){
+  if(s===null || s===undefined) return '#556677';
+  if(s<30) return '#4C8BF5';
+  if(s<60) return '#6E8F72';
+  if(s<85) return '#D9A35E';
+  return '#C0392B';
+}
+
+function drawMap(){
+ try{
+  const canvas = document.getElementById('mapCanvas');
+  const ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  const w = canvas.clientWidth || 320;
+  const isFs = document.getElementById('mapViewWrap').classList.contains('fs');
+  const h = isFs && canvas.clientHeight > 40 ? canvas.clientHeight : 260;
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(track.length<1){
+    const heatmapOnly = document.getElementById('chkHeatmap') && document.getElementById('chkHeatmap').checked
+      && typeof finds !== 'undefined' && finds.some(f=>f.loc);
+    if(!heatmapOnly){
+      ctx.fillStyle='#665f4f'; ctx.font='13px sans-serif';
+      ctx.fillText('No points yet — tap "Start walking" or "Log reading here".', 14, 30);
+      return;
+    }
+  }
+  const findsWithLoc = (typeof finds !== 'undefined') ? finds.filter(f=>f.loc) : [];
+  const originPt = track.length ? track[0] : findsWithLoc[0].loc;
+  const lat0 = originPt.lat, lon0 = originPt.lon;
+  const mPerDegLat = 111320;
+  const mPerDegLon = 111320*Math.cos(lat0*Math.PI/180);
+  const pts = track.map(p=>({
+    x:(p.lon-lon0)*mPerDegLon,
+    y:(p.lat-lat0)*mPerDegLat,
+    signal:p.signal
+  }));
+  const heatPts = findsWithLoc.map(f=>({ x:(f.loc.lon-lon0)*mPerDegLon, y:(f.loc.lat-lat0)*mPerDegLat }));
+  const allPtsForBounds = pts.length ? pts : heatPts;
+  const xs=allPtsForBounds.map(p=>p.x), ys=allPtsForBounds.map(p=>p.y);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  const pad=24;
+  const spanX=Math.max(maxX-minX,1), spanY=Math.max(maxY-minY,1);
+  const scale = Math.min((canvas.width-2*pad)/spanX, (canvas.height-2*pad)/spanY);
+  function toCanvas(p){
+    return {
+      cx: pad + (p.x-minX)*scale,
+      cy: canvas.height - pad - (p.y-minY)*scale
+    };
+  }
+  if(pts.length){
+    ctx.strokeStyle='#556677'; ctx.lineWidth=2; ctx.beginPath();
+    pts.forEach((p,i)=>{ const c=toCanvas(p); if(i===0) ctx.moveTo(c.cx,c.cy); else ctx.lineTo(c.cx,c.cy); });
+    ctx.stroke();
+    pts.forEach(p=>{
+      if(p.signal===null || p.signal===undefined) return;
+      const c=toCanvas(p);
+      ctx.fillStyle=signalColor(p.signal);
+      ctx.beginPath(); ctx.arc(c.cx,c.cy,5,0,7); ctx.fill();
+    });
+  }
+  // finds heatmap overlay (optional, only in offline sketch — live map uses its own leaflet layer)
+  const heatmapOn = document.getElementById('chkHeatmap') && document.getElementById('chkHeatmap').checked;
+  if(heatmapOn){
+    heatPts.forEach(p=>{
+      const c = toCanvas(p);
+      const grad = ctx.createRadialGradient(c.cx,c.cy,0,c.cx,c.cy,18);
+      grad.addColorStop(0,'rgba(217,163,94,0.55)');
+      grad.addColorStop(1,'rgba(217,163,94,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(c.cx,c.cy,18,0,7); ctx.fill();
+      ctx.fillStyle = 'rgba(192,57,43,0.75)';
+      ctx.beginPath(); ctx.arc(c.cx,c.cy,3,0,7); ctx.fill();
+    });
+  }
+  // start/current markers (only if there's an actual track — a finds-only heatmap has no path to mark)
+  if(pts.length){
+    const start = toCanvas(pts[0]);
+    ctx.fillStyle='#EDE6D3'; ctx.beginPath(); ctx.arc(start.cx,start.cy,3,0,7); ctx.fill();
+    // live "you are here" marker — the most recent point, highlighted distinctly from the path/finds
+    const here = toCanvas(pts[pts.length-1]);
+    ctx.beginPath(); ctx.arc(here.cx,here.cy,9,0,7);
+    ctx.fillStyle='rgba(76,139,245,0.28)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(here.cx,here.cy,5,0,7);
+    ctx.fillStyle='#4C8BF5'; ctx.fill();
+    ctx.lineWidth=1.5; ctx.strokeStyle='#eaf1ff'; ctx.stroke();
+  }
+ }catch(e){ console.error('drawMap failed:', e); }
+}
+drawMap();
+
+/* ================= FIND LOG ================= */
+let pendingLoc = null;
+let pendingPhoto = null;
+
+function resizeImageToDataUrl(file, maxDim){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = ()=>{ img.onload = ()=>{
+      try{
+        let {width, height} = img;
+        if(width > height){ if(width>maxDim){ height*=maxDim/width; width=maxDim; } }
+        else { if(height>maxDim){ width*=maxDim/height; height=maxDim; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      }catch(e){ reject(e); }
+    }; img.onerror = reject; img.src = reader.result; };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('findPhotoInput').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  try{
+    pendingPhoto = await resizeImageToDataUrl(file, 480);
+    document.getElementById('findPhotoPreview').src = pendingPhoto;
+    document.getElementById('findPhotoPreviewWrap').style.display = 'block';
+  }catch(err){ alert('Could not load that photo.'); }
+});
+document.getElementById('btnRemovePhoto').addEventListener('click', ()=>{
+  pendingPhoto = null;
+  document.getElementById('findPhotoInput').value = '';
+  document.getElementById('findPhotoPreviewWrap').style.display = 'none';
+});
+
+document.getElementById('btnFindLoc').addEventListener('click', async ()=>{
+  try{
+    const c = await getPos();
+    pendingLoc = {lat:c.latitude, lon:c.longitude};
+    document.getElementById('findLocStatus').textContent = 'Location set: '+c.latitude.toFixed(5)+', '+c.longitude.toFixed(5);
+  }catch(e){ document.getElementById('findLocStatus').textContent = 'Could not get location'; }
+});
+
+document.getElementById('btnSaveFind').addEventListener('click', ()=>{
+  const name = document.getElementById('findName').value.trim();
+  if(!name){ alert('Give it a name first.'); return; }
+  finds.unshift({
+    id: Date.now(),
+    name,
+    vdi: document.getElementById('findVDI').value,
+    depth: document.getElementById('findDepth').value,
+    weight: document.getElementById('findWeight').value,
+    notes: document.getElementById('findNotes').value,
+    loc: pendingLoc,
+    photo: pendingPhoto,
+    date: new Date().toISOString()
+  });
+  save('md_finds', finds);
+  document.getElementById('findName').value='';
+  document.getElementById('findVDI').value='';
+  document.getElementById('findDepth').value='';
+  document.getElementById('findWeight').value='';
+  document.getElementById('findNotes').value='';
+  document.getElementById('findLocStatus').textContent='No location attached';
+  document.getElementById('findPhotoInput').value='';
+  document.getElementById('findPhotoPreviewWrap').style.display='none';
+  pendingLoc=null;
+  pendingPhoto=null;
+  renderFinds();
+  if(typeof renderStats==='function') renderStats();
+});
+
+function renderFinds(){
+  const el = document.getElementById('findList');
+  if(finds.length===0){ el.innerHTML='<p class="small">No finds logged yet.</p>'; return; }
+  el.innerHTML = finds.map(f=>`
+    <div class="finditem">
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        ${f.photo ? `<img src="${f.photo}" style="width:52px; height:52px; object-fit:cover; border-radius:5px; border:1px solid var(--hairline); flex:none;" onclick="window.open('${f.photo}','_blank')">` : ''}
+        <div style="flex:1; min-width:0;">
+          <strong>${escapeHtml(f.name)}</strong>
+          <div class="small">${new Date(f.date).toLocaleDateString()}${f.vdi?(' · VDI '+f.vdi):''}${f.depth?(' · '+f.depth+'cm deep'):''}${f.weight?(' · '+f.weight+'g'):''}</div>
+          ${f.notes?('<div class="small">'+escapeHtml(f.notes)+'</div>'):''}
+          ${f.loc?('<div class="small readout">'+f.loc.lat.toFixed(5)+', '+f.loc.lon.toFixed(5)+'</div>'):''}
+        </div>
+      </div>
+      <button class="danger" style="margin-top:6px;" onclick="deleteFind(${f.id})">Delete</button>
+    </div>`).join('');
+}
+function deleteFind(id){
+  finds = finds.filter(f=>f.id!==id);
+  save('md_finds', finds);
+  renderFinds();
+  if(typeof renderStats==='function') renderStats();
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+document.getElementById('btnExportFinds').addEventListener('click', ()=>{
+  const rows=[['date','name','vdi','depth_cm','weight_g','notes','lat','lon']];
+  finds.forEach(f=>rows.push([f.date, f.name, f.vdi, f.depth, f.weight||'', f.notes, f.loc?f.loc.lat:'', f.loc?f.loc.lon:'']));
+  downloadCSV('finds.csv', rows);
+});
+renderFinds();
+
+/* ================= VDI HELPER ================= */
+let vdiLog = load('md_vdilog', []);
+
+document.getElementById('btnSaveVDI').addEventListener('click', ()=>{
+  const v = Number(document.getElementById('vdiValue').value);
+  const item = document.getElementById('vdiItem').value.trim();
+  if(isNaN(v) || !item){ alert('Add a VDI value and what it was.'); return; }
+  vdiLog.push({v, item, t:Date.now()});
+  save('md_vdilog', vdiLog);
+  document.getElementById('vdiValue').value='';
+  document.getElementById('vdiItem').value='';
+  renderVDIList();
+  drawVDIChart();
+});
+
+function renderVDIList(){
+  const el = document.getElementById('vdiList');
+  if(vdiLog.length===0){ el.innerHTML='<p class="small">Nothing logged yet.</p>'; return; }
+  el.innerHTML = vdiLog.slice().reverse().map((e,i)=>
+    `<div class="small">VDI ${e.v} — ${escapeHtml(e.item)}</div>`
+  ).join('');
+}
+renderVDIList();
+
+function drawVDIChart(){
+ try{
+  const canvas = document.getElementById('vdiCanvas');
+  const ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  const w = canvas.clientWidth || 320;
+  canvas.width = w; canvas.height = 140;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#3B352A'; ctx.beginPath();
+  ctx.moveTo(20, canvas.height-20); ctx.lineTo(canvas.width-10, canvas.height-20); ctx.stroke();
+  ctx.fillStyle='#665f4f'; ctx.font='10px sans-serif';
+  ctx.fillText('0',18,canvas.height-6); ctx.fillText('99',canvas.width-22,canvas.height-6);
+  if(vdiLog.length===0){ ctx.fillText('Log a few finds to see them plotted here.', 30, 20); return; }
+  vdiLog.forEach(e=>{
+    const x = 20 + (e.v/99)*(canvas.width-32);
+    const y = canvas.height-20;
+    ctx.fillStyle = signalColor(e.v);
+    ctx.beginPath(); ctx.arc(x, y-6-Math.random()*40, 4, 0, 7); ctx.fill();
+  });
+ }catch(e){ console.error('drawVDIChart failed:', e); }
+}
+drawVDIChart();
+
+/* ================= UK COIN DATABASE ================= */
+/* icon spec appended as 6th element: [shape, tone, label, bimetal?, innerTone?]
+   shape: 'round' | '7' | '12'   tone: 'silver'|'bronze'|'cupronickel'|'brass'|'ferrous'|'patina' */
+const coins = [
+[["Farthing","bronze"],"1860–1956","Bronze (copper alloy)","20mm · 2.8g","low",['round','bronze','¼d']],
+[["Halfpenny","pre-decimal"],"1860–1967","Bronze (copper alloy)","25.5mm · 5.7g","med",['round','bronze','½d']],
+[["Penny","pre-decimal, bronze"],"1860–1967","Bronze (copper alloy)","31mm · 9.4g","med",['round','bronze','1d']],
+[["Threepence","silver"],"to 1936 (.925 to 1920, .500 after)","Silver","16–17mm","high",['round','silver','3d']],
+[["Threepence","12-sided, nickel-brass"],"1937–1967","Nickel-brass (Cu/Zn/Ni)","21mm dodecagonal · 6.8g","med",['12','brass','3d']],
+[["Sixpence","silver"],"to 1946 (.925 to 1920, .500 after)","Silver","19.5mm","high",['round','silver','6d']],
+[["Sixpence","cupro-nickel"],"1947–1967","Cupro-nickel (75Cu/25Ni)","19.5mm · 2.8g","high",['round','cupronickel','6d']],
+[["Shilling","silver"],"to 1946","Silver","23mm","high",['round','silver','1/-']],
+[["Shilling","cupro-nickel"],"1947–1966","Cupro-nickel","23mm","high",['round','cupronickel','1/-']],
+[["Florin (two shillings)","silver"],"to 1946","Silver","28mm","high",['round','silver','2/-']],
+[["Florin (two shillings)","cupro-nickel"],"1947–1967","Cupro-nickel","28mm","high",['round','cupronickel','2/-']],
+[["Half crown","silver"],"to 1946","Silver","32mm","high",['round','silver','2/6']],
+[["Half crown","cupro-nickel"],"1947–1970","Cupro-nickel","32mm","high",['round','cupronickel','2/6']],
+[["Crown","silver, large commemorative"],"various, e.g. 1935/1951/1953","Silver or cupro-nickel","38mm","high",['round','silver','5/-']],
+[["Maundy money","1p/2p/3p/4p, still minted"],"ongoing","Sterling silver (.925)","tiny, 10–18mm","high",['round','silver','M']],
+[["Halfpenny","decimal, bronze"],"1971–1984","Bronze","17mm","med",['round','bronze','½p']],
+[["1p","decimal, bronze"],"1971–1992","Bronze","20.3mm · 3.56g","med",['round','bronze','1p']],
+[["1p","decimal, copper-plated steel"],"1992–present","Copper-plated steel — magnetic","20.3mm · 3.56g","ferrous",['round','ferrous','1p']],
+[["2p","decimal, bronze"],"1971–1992","Bronze","25.9mm · 7.1g","med",['round','bronze','2p']],
+[["2p","decimal, copper-plated steel"],"1992–present","Copper-plated steel — magnetic","25.9mm · 7.1g","ferrous",['round','ferrous','2p']],
+[["5p","large, cupro-nickel"],"1968–1990","Cupro-nickel","23.6mm","high",['round','cupronickel','5p']],
+[["5p","small, cupro-nickel"],"1990–present","Cupro-nickel","18mm","high",['round','cupronickel','5p']],
+[["10p","large, cupro-nickel"],"1968–1992","Cupro-nickel","28.5mm","high",['round','cupronickel','10p']],
+[["10p","small, cupro-nickel"],"1992–present","Cupro-nickel","24.5mm","high",['round','cupronickel','10p']],
+[["20p","7-sided, cupro-nickel"],"1982–present","Cupro-nickel","21.4mm","high",['7','cupronickel','20p']],
+[["50p","large, cupro-nickel"],"1969–1997","Cupro-nickel","30mm","high",['7','cupronickel','50p']],
+[["50p","small, cupro-nickel"],"1997–present","Cupro-nickel","27.3mm","high",['7','cupronickel','50p']],
+[["£1","round, nickel-brass"],"1983–2016","Nickel-brass (Cu/Zn/Ni)","22.5mm · 9.5g","med",['round','brass','£1']],
+[["£1","12-sided, bimetallic"],"2017–present","Nickel-brass outer / nickel-plated alloy inner","23.4mm · 8.75g","med (mixed signal)",['12','brass','£1',true,'silver']],
+[["£2","bimetallic"],"1997–present","Nickel-brass outer / cupro-nickel inner","28.4mm · 12g","high (mixed signal)",['round','brass','£2',true,'cupronickel']],
+[["Roman AE (bronze/copper alloy)","commonly dug context"],"1st–4th century AD","Copper alloy, variable","12–28mm, variable","med",['round','patina','Æ']],
+[["Hammered silver penny","medieval context"],"c.600–1660s","Silver (often high purity)","12–20mm","high",['round','silver','d']],
+];
+const tierClass = {ferrous:'tier-ferrous', low:'tier-low', med:'tier-med', high:'tier-high'};
+const tierLabel = {ferrous:'Ferrous ⚠', low:'Low', med:'Medium', high:'High'};
+
+/* ---------- schematic coin icon generator (no external images — stays offline, no copyright issues) ---------- */
+function polyPoints(sides, cx, cy, r, rotateDeg){
+  const rot = (rotateDeg||0) * Math.PI/180;
+  const pts = [];
+  for(let i=0;i<sides;i++){
+    const a = rot + i*2*Math.PI/sides - Math.PI/2;
+    pts.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));
+  }
+  return pts.join(' ');
+}
+function coinIcon(spec){
+  const [shape, tone, label, bimetal, innerTone] = spec;
+  const grad = {silver:'gradSilver',bronze:'gradBronze',cupronickel:'gradCN',brass:'gradBrass',ferrous:'gradFerrous',patina:'gradPatina'};
+  const cx=22, cy=22, rOuter=19, rInner=12;
+  let outerShape;
+  if(shape==='12'){
+    outerShape = `<polygon points="${polyPoints(12,cx,cy,rOuter,15)}" fill="url(#${grad[tone]})" stroke="#0006" stroke-width="1"/>`;
+  } else if(shape==='7'){
+    outerShape = `<polygon points="${polyPoints(7,cx,cy,rOuter,0)}" fill="url(#${grad[tone]})" stroke="#0006" stroke-width="1"/>`;
+  } else {
+    outerShape = `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="url(#${grad[tone]})" stroke="#0006" stroke-width="1"/>`;
+  }
+  const innerShape = bimetal
+    ? `<circle cx="${cx}" cy="${cy}" r="${rInner}" fill="url(#${grad[innerTone]})" stroke="#0004" stroke-width="0.8"/>`
+    : '';
+  const magnetFlag = tone==='ferrous'
+    ? `<circle cx="34" cy="10" r="6" fill="#5a2a1e" stroke="#0006" stroke-width="0.6"/><text x="34" y="12.8" text-anchor="middle" font-size="7" font-weight="700" fill="#f2d9c8">Fe</text>`
+    : '';
+  const textFill = (tone==='silver'||tone==='cupronickel') ? '#2b2b2b' : '#2a1a0e';
+  return `<svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true" style="flex-shrink:0;">
+    <circle cx="${cx}" cy="${cy+1}" r="${rOuter+0.5}" fill="#000" opacity="0.28"/>
+    ${outerShape}
+    <circle cx="${cx}" cy="${cy}" r="${rOuter-3}" fill="none" stroke="#0004" stroke-width="0.6"/>
+    ${innerShape}
+    <text x="${cx}" y="${cy+3.2}" text-anchor="middle" font-size="${label.length>2?9:11}" font-weight="700" fill="${textFill}" font-family="Georgia, serif">${label}</text>
+    ${magnetFlag}
+  </svg>`;
+}
+
+function renderCoins(filter){
+  const body = document.getElementById('coinBody');
+  const f = (filter||'').toLowerCase();
+  body.innerHTML = coins
+    .map(c=>({name:c[0][0], sub:c[0][1], period:c[1], comp:c[2], size:c[3], tier:c[4], icon:c[5]}))
+    .filter(c=>!f || (c.name+' '+c.sub+' '+c.period+' '+c.comp).toLowerCase().includes(f))
+    .map(c=>{
+      const tierKey = c.tier.split(' ')[0];
+      return `<tr>
+        <td><div style="display:flex; align-items:center; gap:9px;">${coinIcon(c.icon)}<div><strong>${c.name}</strong><div class="small">${c.sub}</div></div></div></td>
+        <td>${c.period}</td>
+        <td>${c.comp}</td>
+        <td>${c.size}</td>
+        <td><span class="pill ${tierClass[tierKey]||''}">${tierLabel[tierKey]||c.tier}</span></td>
+      </tr>`;
+    }).join('');
+}
+renderCoins('');
+document.getElementById('coinSearch').addEventListener('input', e=>renderCoins(e.target.value));
+
+/* ================= OTHER FINDS ID GUIDE ================= */
+const otherFinds = [
+["Georgian/Victorian tunic button","18th–19th c, military or livery","Brass / gilt copper alloy","med-high","Regimental or livery crest on the face; a hand-soldered eye shank points 18th c, a stamped shank points Victorian; maker's mark on the back can narrow the date"],
+["Pewter or lead waistcoat button","17th–19th c","Lead-tin alloy","low","Reads unusually low for its size — pure lead/pewter conducts poorly, so don't dismiss a weak, low-toned signal on an old site as junk"],
+["Hand-made thimble","16th–17th c","Bronze/brass","med","Open (crownless) top with irregular, hand-punched dimples; smaller and lower-domed than later machine-made ones"],
+["Machine-made thimble","18th–19th c","Brass","med","Regular, evenly spaced dimple pattern from mass production; sometimes a maker's band or motto near the rim"],
+["Musket ball / round lead shot","17th–19th c (English Civil War era common)","Lead","ferrous-low","One of the easiest finds to accidentally discriminate out — pure lead often reads down near iron; worth a low-discrimination sweep on sites with battle or hunting history"],
+["Roman brooch (fibula)","1st–4th c AD","Bronze/copper alloy","med","Bow-shaped or penannular (open ring) form; look for a corroded pin or catch-plate on the back even if the pin itself is gone"],
+["Medieval strap end / belt mount","11th–15th c","Bronze, occasionally silver","med-high","Small, tongue-shaped fitting from the end of a belt or strap; sometimes gilded or decorated"],
+["Seal matrix","medieval–post-medieval","Bronze, lead, or occasionally silver","med-high","Engraved, mirror-image design or initials made to stamp wax; a genuinely exciting find if a name is legible"],
+["Lead cloth/bag seal","14th–19th c","Lead","ferrous-low","Two flattened discs joined by a strip, stamped with a merchant's or town's mark; scattered along old market and trade routes"],
+["Horse harness/tack fitting","Roman–Victorian","Bronze/copper alloy","med","Decorative strap junctions, pendants and buckles from tack; heavily represented on any site with centuries of horse traffic"],
+["Lead toy figure (soldier/animal)","19th–20th c","Lead-tin alloy","ferrous-low","Same low-conductivity issue as musket balls — check your discrimination isn't quietly rejecting this whole category"],
+["Clay tobacco pipe (stem/bowl)","17th–19th c","Fired clay — not metal","none","Won't trigger a detector, but you'll dig plenty alongside metal finds; rough rule of thumb — the wider the stem bore, the earlier the pipe"],
+["Hammered coin (general)","pre-1662 in England","Silver, mostly","high","Irregular, slightly uneven round shape, off-centre design, no milled/reeded edge, and thinner than a modern coin of similar size — struck by hand between two dies"],
+];
+const otherTierClass = {ferrous:'tier-ferrous','ferrous-low':'tier-ferrous', low:'tier-low', med:'tier-med', 'med-high':'tier-high', high:'tier-high', none:''};
+const otherTierLabel = {'ferrous-low':'Low / ferrous-ish', low:'Low', med:'Medium', 'med-high':'Med–High', high:'High', none:'—'};
+function renderOther(filter){
+  const body = document.getElementById('otherBody');
+  const f = (filter||'').toLowerCase();
+  body.innerHTML = otherFinds
+    .filter(r=>!f || r.slice(0,3).join(' ').toLowerCase().includes(f))
+    .map(r=>`<tr>
+      <td><strong>${r[0]}</strong></td>
+      <td>${r[1]}</td>
+      <td>${r[2]}</td>
+      <td><span class="pill ${otherTierClass[r[3]]||''}">${otherTierLabel[r[3]]||r[3]}</span></td>
+      <td class="small">${r[4]}</td>
+    </tr>`).join('');
+}
+renderOther('');
+document.getElementById('otherSearch').addEventListener('input', e=>renderOther(e.target.value));
+
+/* ================= TOOLS TAB ================= */
+
+/* ---- OSGB36 National Grid Reference conversion (validated against OS's own worked examples) ---- */
+function _toRad(d){ return d*Math.PI/180; }
+function _toDeg(r){ return r*180/Math.PI; }
+function _llToCartesian(lat, lon, h, a, b){
+  const e2 = 1 - (b*b)/(a*a);
+  const phi = _toRad(lat), lambda = _toRad(lon);
+  const sinPhi = Math.sin(phi), cosPhi = Math.cos(phi);
+  const nu = a / Math.sqrt(1 - e2*sinPhi*sinPhi);
+  return [ (nu+h)*cosPhi*Math.cos(lambda), (nu+h)*cosPhi*Math.sin(lambda), ((1-e2)*nu + h)*sinPhi ];
+}
+function _cartesianToLL(xyz, a, b){
+  const [x,y,z] = xyz;
+  const e2 = 1 - (b*b)/(a*a);
+  const p = Math.sqrt(x*x+y*y);
+  let phi = Math.atan2(z, p*(1-e2));
+  for(let i=0;i<15;i++){
+    const sinPhi = Math.sin(phi);
+    const nu = a/Math.sqrt(1-e2*sinPhi*sinPhi);
+    phi = Math.atan2(z + e2*nu*sinPhi, p);
+  }
+  return [_toDeg(phi), _toDeg(Math.atan2(y,x))];
+}
+function _helmertWgsToOsgb(xyz){
+  const rx=_toRad(-0.1502/3600), ry=_toRad(-0.2470/3600), rz=_toRad(-0.8421/3600);
+  const sc = 1 + 20.4894e-6;
+  const [x,y,z] = xyz;
+  return [
+    -446.448 + sc*(x - rz*y + ry*z),
+     125.157 + sc*(rz*x + y - rx*z),
+    -542.060 + sc*(-ry*x + rx*y + z)
+  ];
+}
+function _llToOSGrid(lat, lon){
+  const a = 6377563.396, b = 6356256.909, F0 = 0.9996012717;
+  const lat0 = _toRad(49), lon0 = _toRad(-2), N0 = -100000, E0 = 400000;
+  const e2 = 1 - (b*b)/(a*a), n = (a-b)/(a+b);
+  const phi = _toRad(lat), lambda = _toRad(lon);
+  const sinPhi=Math.sin(phi), cosPhi=Math.cos(phi), tanPhi=Math.tan(phi);
+  const nu = a*F0/Math.sqrt(1-e2*sinPhi*sinPhi);
+  const rho = a*F0*(1-e2)/Math.pow(1-e2*sinPhi*sinPhi,1.5);
+  const eta2 = nu/rho - 1;
+  const Ma=(1+n+5/4*n*n+5/4*n*n*n)*(phi-lat0);
+  const Mb=(3*n+3*n*n+21/8*n*n*n)*Math.sin(phi-lat0)*Math.cos(phi+lat0);
+  const Mc=(15/8*n*n+15/8*n*n*n)*Math.sin(2*(phi-lat0))*Math.cos(2*(phi+lat0));
+  const Md=35/24*n*n*n*Math.sin(3*(phi-lat0))*Math.cos(3*(phi+lat0));
+  const M = b*F0*(Ma-Mb+Mc-Md);
+  const cos3=cosPhi*cosPhi*cosPhi, cos5=cos3*cosPhi*cosPhi, tan2=tanPhi*tanPhi, tan4=tan2*tan2;
+  const I=M+N0, II=nu/2*sinPhi*cosPhi;
+  const III=nu/24*sinPhi*cos3*(5-tan2+9*eta2);
+  const IIIA=nu/720*sinPhi*cos5*(61-58*tan2+tan4);
+  const IV=nu*cosPhi;
+  const V=nu/6*cos3*(nu/rho-tan2);
+  const VI=nu/120*cos5*(5-18*tan2+tan4+14*eta2-58*tan2*eta2);
+  const dL = lambda-lon0;
+  return [ E0+IV*dL+V*Math.pow(dL,3)+VI*Math.pow(dL,5), I+II*dL*dL+III*Math.pow(dL,4)+IIIA*Math.pow(dL,6) ];
+}
+function toNGR(lat, lon){
+  try{
+    const xyzW = _llToCartesian(lat, lon, 0, 6378137.000, 6356752.3142);
+    const xyzO = _helmertWgsToOsgb(xyzW);
+    const [latO, lonO] = _cartesianToLL(xyzO, 6377563.396, 6356256.909);
+    const [E,N] = _llToOSGrid(latO, lonO);
+    const e100k = Math.floor(E/100000), n100k = Math.floor(N/100000);
+    if(e100k<-2||e100k>8||n100k<-2||n100k>13) return '(outside GB grid)';
+    let l1 = (19-n100k) - (19-n100k)%5 + Math.floor((e100k+10)/5);
+    let l2 = ((19-n100k)*5)%25 + e100k%5;
+    if(l2<0) l2+=25;
+    if(l1>7) l1++;
+    if(l2>7) l2++;
+    const letters = String.fromCharCode(65+l1) + String.fromCharCode(65+l2);
+    let e = Math.round(E)%100000, n = Math.round(N)%100000;
+    if(e<0) e+=100000; if(n<0) n+=100000;
+    return letters + ' ' + ('00000'+e).slice(-5) + ' ' + ('00000'+n).slice(-5);
+  }catch(err){ return ''; }
+}
+
+/* ---- backup reminder ---- */
+(function backupReminderCheck(){
+  try{
+    const last = localStorage.getItem('md_lastBackupAt');
+    const card = document.getElementById('backupReminderCard');
+    const text = document.getElementById('backupReminderText');
+    if(!card || !text) return;
+    if(!last){
+      card.style.display='block';
+      text.textContent = "You haven't exported a JSON backup yet. Your finds and track only live in this browser until you do.";
+      return;
+    }
+    const days = (Date.now() - new Date(last).getTime()) / 86400000;
+    if(days > 7){
+      card.style.display='block';
+      text.textContent = `It's been ${Math.floor(days)} days since your last backup (${new Date(last).toLocaleDateString()}).`;
+    }
+  }catch(e){}
+})();
+
+/* ---- career stats ---- */
+function haversineM(lat1,lon1,lat2,lon2){
+  const R=6371000, dLat=_toRad(lat2-lat1), dLon=_toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(_toRad(lat1))*Math.cos(_toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function trackDistanceM(){
+  let d=0;
+  for(let i=1;i<track.length;i++) d += haversineM(track[i-1].lat, track[i-1].lon, track[i].lat, track[i].lon);
+  return d;
+}
+function renderStats(){
+  const el = document.getElementById('statsBody');
+  if(!el) return;
+  const dKm = (trackDistanceM()/1000).toFixed(2);
+  const sessions = load('md_sessions', []);
+  const totalHours = sessions.reduce((s,x)=>s+(Number(x.hours)||0),0);
+  const perms = load('md_permissions', []);
+  el.innerHTML = `
+    <p><strong>${finds.length}</strong> finds logged</p>
+    <p><strong>${dKm} km</strong> of GPS track recorded (all-time)</p>
+    <p><strong>${sessions.length}</strong> sessions logged, <strong>${totalHours.toFixed(1)}h</strong> total</p>
+    <p><strong>${perms.length}</strong> permission(s) on file</p>
+  `;
+}
+renderStats();
+
+/* ---- unit converter (live two-way) ---- */
+function bindConv(idA, idB, toB, toA){
+  const a=document.getElementById(idA), b=document.getElementById(idB);
+  a.addEventListener('input', ()=>{ if(a.value==='') { b.value=''; return; } b.value = (toB(Number(a.value))).toFixed(3).replace(/\.?0+$/,''); });
+  b.addEventListener('input', ()=>{ if(b.value==='') { a.value=''; return; } a.value = (toA(Number(b.value))).toFixed(3).replace(/\.?0+$/,''); });
+}
+bindConv('convMm','convIn', mm=>mm/25.4, inch=>inch*25.4);
+bindConv('convG','convOz', g=>g/28.3495, oz=>oz*28.3495);
+bindConv('convGTroy','convTroy', g=>g/31.1035, oz=>oz*31.1035);
+
+/* ---- silver value estimator ---- */
+function updateSilverValue(){
+  const spot = Number(document.getElementById('silverSpot').value);
+  const weight = Number(document.getElementById('silverWeight').value);
+  const purity = Number(document.getElementById('silverPurity').value);
+  const out = document.getElementById('silverResult');
+  if(!spot || !weight){ out.textContent = 'Enter a spot price and weight.'; return; }
+  const pureGrams = weight * purity;
+  const troyOz = pureGrams / 31.1035;
+  const value = troyOz * spot;
+  out.textContent = `≈ £${value.toFixed(2)} scrap value (${pureGrams.toFixed(2)}g pure silver)`;
+}
+['silverSpot','silverWeight','silverPurity'].forEach(id=>document.getElementById(id).addEventListener('input', updateSilverValue));
+(function(){ try{ const saved=localStorage.getItem('md_silverspot'); if(saved) document.getElementById('silverSpot').value=saved; }catch(e){} })();
+document.getElementById('silverSpot').addEventListener('change', e=>{ try{ localStorage.setItem('md_silverspot', e.target.value); }catch(err){} });
+
+/* ---- search pattern timer ---- */
+let searchTimerId = null;
+document.getElementById('btnTimerToggle').addEventListener('click', ()=>{
+  const btn = document.getElementById('btnTimerToggle');
+  const status = document.getElementById('timerStatus');
+  if(searchTimerId){
+    clearInterval(searchTimerId);
+    searchTimerId = null;
+    btn.textContent = 'Start timer';
+    status.textContent = 'Not running';
+  } else {
+    const secs = Math.max(5, Number(document.getElementById('timerInterval').value) || 30);
+    status.textContent = `Running — buzz every ${secs}s`;
+    btn.textContent = 'Stop timer';
+    searchTimerId = setInterval(()=>{
+      if(navigator.vibrate) navigator.vibrate([200,100,200]);
+      try{
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880; g.gain.value = 0.15;
+        o.start(); setTimeout(()=>{ o.stop(); ctx.close(); }, 180);
+      }catch(e){}
+    }, secs*1000);
+  }
+});
+
+/* ---- session log ---- */
+let sessions = load('md_sessions', []);
+document.getElementById('sessionDate').valueAsDate = new Date();
+document.getElementById('btnSaveSession').addEventListener('click', ()=>{
+  sessions.unshift({
+    id: Date.now(),
+    date: document.getElementById('sessionDate').value || new Date().toISOString().slice(0,10),
+    hours: document.getElementById('sessionHours').value,
+    weather: document.getElementById('sessionWeather').value,
+    ground: document.getElementById('sessionGround').value,
+    notes: document.getElementById('sessionNotes').value
+  });
+  save('md_sessions', sessions);
+  document.getElementById('sessionHours').value='';
+  document.getElementById('sessionWeather').value='';
+  document.getElementById('sessionGround').value='';
+  document.getElementById('sessionNotes').value='';
+  renderSessions();
+  renderStats();
+});
+function renderSessions(){
+  const el = document.getElementById('sessionList');
+  if(sessions.length===0){ el.innerHTML='<p class="small">No sessions logged yet.</p>'; return; }
+  el.innerHTML = sessions.map(s=>`
+    <div class="finditem">
+      <strong>${new Date(s.date).toLocaleDateString()}</strong>${s.hours?(' · '+s.hours+'h'):''}
+      <div class="small">${[s.weather,s.ground].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+      ${s.notes?('<div class="small">'+escapeHtml(s.notes)+'</div>'):''}
+      <button class="danger" style="margin-top:6px;" onclick="deleteSession(${s.id})">Delete</button>
+    </div>`).join('');
+}
+function deleteSession(id){ sessions = sessions.filter(s=>s.id!==id); save('md_sessions', sessions); renderSessions(); renderStats(); }
+document.getElementById('btnExportSessions').addEventListener('click', ()=>{
+  const rows=[['date','hours','weather','ground','notes']];
+  sessions.forEach(s=>rows.push([s.date, s.hours, s.weather, s.ground, s.notes]));
+  downloadCSV('sessions.csv', rows);
+});
+renderSessions();
+
+/* ---- permissions & landowner tracker ---- */
+let permissions = load('md_permissions', []);
+document.getElementById('btnSavePerm').addEventListener('click', ()=>{
+  const field = document.getElementById('permField').value.trim();
+  if(!field){ alert('Give the field/site a name first.'); return; }
+  permissions.unshift({
+    id: Date.now(),
+    field,
+    owner: document.getElementById('permOwner').value,
+    contact: document.getElementById('permContact').value,
+    status: document.getElementById('permStatus').value,
+    notes: document.getElementById('permNotes').value
+  });
+  save('md_permissions', permissions);
+  ['permField','permOwner','permContact','permStatus','permNotes'].forEach(id=>document.getElementById(id).value='');
+  renderPerms();
+  renderStats();
+});
+function renderPerms(){
+  const el = document.getElementById('permList');
+  if(permissions.length===0){ el.innerHTML='<p class="small">No permissions logged yet.</p>'; return; }
+  el.innerHTML = permissions.map(p=>`
+    <div class="finditem">
+      <strong>${escapeHtml(p.field)}</strong>${p.status?(' · '+escapeHtml(p.status)):''}
+      <div class="small">${[p.owner,p.contact].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+      ${p.notes?('<div class="small">'+escapeHtml(p.notes)+'</div>'):''}
+      <button class="danger" style="margin-top:6px;" onclick="deletePerm(${p.id})">Delete</button>
+    </div>`).join('');
+}
+function deletePerm(id){ permissions = permissions.filter(p=>p.id!==id); save('md_permissions', permissions); renderPerms(); renderStats(); }
+renderPerms();
+
+/* ---- PAS-style export ---- */
+document.getElementById('btnExportPAS').addEventListener('click', ()=>{
+  const rows=[['Find spot NGR','Object type','Material (fill in)','Broad period (fill in)','Date found','Depth (cm)','Weight (g)','Description / notes','Finder']];
+  finds.forEach(f=>{
+    const ngr = f.loc ? toNGR(f.loc.lat, f.loc.lon) : '';
+    rows.push([ngr, f.name, '', '', new Date(f.date).toISOString().slice(0,10), f.depth||'', f.weight||'', f.notes||'', '']);
+  });
+  downloadCSV('pas-export.csv', rows);
+});
+
+</script>
+</body>
+</html>
